@@ -1,0 +1,41 @@
+name: Elixir CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1.18.1
+        with:
+          elixir-version: "1.17" # [Required] Define the Elixir version
+          otp-version: "27" # [Required] Define the Erlang/OTP version
+      - name: Restore dependencies cache
+        uses: actions/cache@v3
+        with:
+          path: deps
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: ${{ runner.os }}-mix-
+      - name: Restore _build cache
+        uses: actions/cache@v3
+        with:
+          path: _build
+          key: ${{ runner.os }}-build-${{ hashFiles('**/*.ex') }}
+          restore-keys: ${{ runner.os }}-build-
+      - name: Install dependencies
+        run: mix deps.get
+      - name: Run Quality Checks
+        run: mix check
