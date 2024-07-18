@@ -27,6 +27,15 @@ defmodule Newt do
       end
 
       @impl true
+
+      # N.B. This clause of validate should never *actually* be called, but
+      # having it prevents a dialyzer warning with the case statement in new/1.
+      def validate(
+            Newt.StupidPlaceholderValueThatWouldBeRidiculousToEverUseInYourProgramSoDoNotDoItOK
+          ) do
+        {:error, "418 - I'm a teapot"}
+      end
+
       def validate(value) do
         {:ok, value}
       end
