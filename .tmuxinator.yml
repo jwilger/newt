@@ -1,0 +1,8 @@
+name: newt
+on_project_first_start: mix deps.get
+windows:
+  - editor:
+      layout: 49d3,364x88,0,0{280x88,0,0,20,83x88,281,0,22}
+      panes:
+        - vim
+        - mix test.interactive --stale
