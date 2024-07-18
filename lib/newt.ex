@@ -13,6 +13,7 @@ defmodule Newt do
     opts = Keyword.validate!(opts, [:type])
     typespec = Keyword.fetch!(opts, :type)
     module_name = "Type_#{UUID.uuid4(:hex)}" |> String.to_atom()
+    type_name = __CALLER__.module
 
     quote location: :keep do
       use TypedStruct
@@ -45,6 +46,43 @@ defmodule Newt do
       defmacro __using__(_opts \\ []) do
         quote do
           require unquote(__MODULE__)
+        end
+      end
+
+      defimpl Inspect, for: unquote(module_name) do
+        import Inspect.Algebra
+
+        def inspect(%{value: value}, opts) do
+          concat([
+            "#",
+            to_doc(unquote(type_name), opts),
+            string("<"),
+            to_doc(value, opts),
+            string(">")
+          ])
+        end
+      end
+    end
+  end
+
+  @spec newtype(atom(), term()) :: Macro.t()
+  defmacro newtype(type_name, typespec) do
+    quote do
+      defmodule unquote(type_name) do
+        use Newt, type: unquote(typespec)
+      end
+    end
+  end
+
+  @spec newtype(atom(), term(), do: Macro.t()) :: Macro.t()
+  defmacro newtype(type_name, typespec, do: block) do
+    quote do
+      defmodule unquote(type_name) do
+        use Newt, type: unquote(typespec)
+
+        @impl true
+        def validate(var!(value)) do
+          unquote(block)
         end
       end
     end
