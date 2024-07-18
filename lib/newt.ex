@@ -62,6 +62,12 @@ defmodule Newt do
           ])
         end
       end
+
+      defimpl String.Chars, for: unquote(module_name) do
+        def to_string(%{value: value}) do
+          to_string(value)
+        end
+      end
     end
   end
 

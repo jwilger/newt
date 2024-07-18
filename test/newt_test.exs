@@ -1,4 +1,5 @@
 defmodule NewtTest do
+  alias Newt.ExampleIntegerType
   alias Newt.ExampleStringType
   alias Newt.ExampleUnvalidatedStringType
 
@@ -23,6 +24,19 @@ defmodule NewtTest do
     test "returns an opaque representation of the type" do
       {:ok, value} = ExampleStringType.new("example")
       assert inspect(value) == "#Newt.ExampleStringType<\"example\">"
+
+      {:ok, value} = ExampleIntegerType.new(42)
+      assert inspect(value) == "#Newt.ExampleIntegerType<42>"
+    end
+  end
+
+  describe "String.Chars implementation" do
+    test "returns the wrapped value as a string" do
+      {:ok, value} = ExampleStringType.new("example")
+      assert to_string(value) == "example"
+
+      {:ok, value} = ExampleIntegerType.new(42)
+      assert to_string(value) == "42"
     end
   end
 end
