@@ -14,7 +14,8 @@
   ## list of tools (see `mix check` docs for a list of default curated tools)
   tools: [
     sobelow: false,
-    gettext: false
+    gettext: false,
+    doctor: false
 
     ## curated tools may be disabled (e.g. the check for compilation warnings)
     # {:compiler, false},

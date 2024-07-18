@@ -30,13 +30,13 @@ defmodule Newt.MixProject do
       {:assert_match, "~> 1.0", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:doctor, "~> 0.21", only: :dev, runtime: false},
       {:ex_check, "~> 0.15", only: :dev, runtime: false},
       {:ex_doc, "~> 0.30", only: [:dev, :test], runtime: false},
       {:faker, "~> 0.18"},
       {:mix_audit, "~> 2.1", only: :dev, runtime: false},
       {:mix_test_interactive, "~> 2.0", only: :dev, runtime: false},
       {:stream_data, "~> 1.0"},
+      {:typed_struct, "~> 0.3"},
       {:uuid, "~> 1.1"},
       {:vex, "~> 0.9"}
     ]
