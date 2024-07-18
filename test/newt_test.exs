@@ -6,8 +6,6 @@ defmodule NewtTest do
   use ExampleUnvalidatedStringType
   use ExampleStringType
 
-  import Newt
-
   describe "new/1" do
     test "returns the passed primitive value as the type" do
       {:ok, value} = ExampleUnvalidatedStringType.new(Faker.Lorem.word())
@@ -18,6 +16,13 @@ defmodule NewtTest do
       check all value <- term() |> filter(fn v -> v != "example" end) do
         {:error, "must be 'example'"} = ExampleStringType.new(value)
       end
+    end
+  end
+
+  describe "Inspect implementation" do
+    test "returns an opaque representation of the type" do
+      {:ok, value} = ExampleStringType.new("example")
+      assert inspect(value) == "#Newt.ExampleStringType<\"example\">"
     end
   end
 end

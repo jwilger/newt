@@ -1,33 +1,17 @@
-defmodule Newt.ExampleStringType do
-  @moduledoc false
+import Newt
 
-  use Newt, type: String.t()
-
-  @impl true
-  def validate(value) do
-    case value do
-      "example" -> {:ok, value}
-      _ -> {:error, "must be 'example'"}
-    end
+newtype Newt.ExampleStringType, String.t() do
+  case value do
+    "example" -> {:ok, value}
+    _ -> {:error, "must be 'example'"}
   end
 end
 
-defmodule Newt.ExampleUnvalidatedStringType do
-  @moduledoc false
+newtype Newt.ExampleUnvalidatedStringType, String.t()
 
-  use Newt, type: String.t()
-end
-
-defmodule Newt.ExampleIntegerType do
-  @moduledoc false
-
-  use Newt, type: integer()
-
-  @impl true
-  def validate(value) do
-    case value do
-      42 -> {:ok, value}
-      _ -> {:error, "must be 42"}
-    end
+newtype Newt.ExampleIntegerType, integer() do
+  case value do
+    42 -> {:ok, value}
+    _ -> {:error, "must be 42"}
   end
 end
