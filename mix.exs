@@ -30,7 +30,7 @@ defmodule Newt.MixProject do
       {:assert_match, "~> 1.0", only: :test},
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:ex_check, "~> 0.15", only: [:dev, :test]},
+      {:ex_check, "~> 0.16", only: :dev, runtime: false},
       {:ex_doc, "~> 0.30", only: [:dev, :test], runtime: false},
       {:faker, "~> 0.18"},
       {:mix_audit, "~> 2.1", only: :dev, runtime: false},
@@ -50,10 +50,8 @@ defmodule Newt.MixProject do
       ],
       test: ["test --warnings-as-errors"],
       compile: ["compile --warnings-as-errors"],
-      dialyzer: ["compile", "dialyzer --list-unused-filters --force-check"],
-      credo: ["credo --strict"],
-      check_formatting: ["format --check-formatted"],
-      check: ["clean", "deps.get", "deps.compile", "check"]
+      dialyzer: ["dialyzer --list-unused-filters --force-check"],
+      credo: ["credo --strict"]
     ]
   end
 end
