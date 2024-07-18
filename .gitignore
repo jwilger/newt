@@ -28,3 +28,4 @@ newt-*.tar
 .nix-hex
 .nix-mix
 priv/static/docs
+.erlang-history
