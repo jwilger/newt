@@ -20,6 +20,26 @@ defmodule NewtTest do
     end
   end
 
+  describe "unwrap/1" do
+    test "returns the wrapped value" do
+      {:ok, value} = ExampleStringType.new("example")
+      assert ExampleStringType.unwrap(value) == {:ok, "example"}
+
+      {:ok, value} = ExampleIntegerType.new(42)
+      assert ExampleIntegerType.unwrap(value) == {:ok, 42}
+    end
+
+    test "returns an error as-is if passed an error" do
+      message = Faker.Lorem.sentence()
+      assert ExampleStringType.unwrap({:error, message}) == {:error, message}
+    end
+
+    test "returns an invalid type error if passed an invalid type" do
+      assert ExampleStringType.unwrap(:foo) ==
+               {:error, "#{inspect(:foo)} is not a valid Newt.ExampleStringType"}
+    end
+  end
+
   describe "Inspect implementation" do
     test "returns an opaque representation of the type" do
       {:ok, value} = ExampleStringType.new("example")
