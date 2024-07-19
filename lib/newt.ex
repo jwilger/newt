@@ -67,6 +67,16 @@ defmodule Newt do
         end
       end
 
+      defmacro defimpl(protocol, do: block) do
+        module_name = unquote(module_name)
+
+        quote do
+          defimpl unquote(protocol), for: unquote(module_name) do
+            unquote(block)
+          end
+        end
+      end
+
       defimpl Inspect, for: unquote(module_name) do
         import Inspect.Algebra
 
