@@ -12,7 +12,8 @@ defmodule Newt.MixProject do
       name: "Newt",
       description: "A newtype abstraction for Elixir",
       package: [
-        licenses: ["MIT"]
+        licenses: ["MIT"],
+        links: %{"GitHub" => "https://github.com/jwilger/newt"}
       ],
       source_url: "https://github.com/jwilger/newt",
       homepage_url: "https://github.com/jwilger/newt/blob/main/README.md",
