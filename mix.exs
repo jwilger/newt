@@ -4,7 +4,7 @@ defmodule Newt.MixProject do
   def project do
     [
       app: :newt,
-      version: "1.1.0",
+      version: "2.0.0",
       elixir: "~> 1.17",
       elixirc_paths: elixirc_paths(Mix.env()),
       aliases: aliases(),
