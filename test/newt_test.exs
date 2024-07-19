@@ -59,4 +59,14 @@ defmodule NewtTest do
       assert to_string(value) == "42"
     end
   end
+
+  describe "Jason.Encoder implementation" do
+    test "encodes the wrapped value" do
+      {:ok, value} = ExampleStringType.new("example")
+      assert Jason.encode!(value) == "\"example\""
+
+      {:ok, value} = ExampleIntegerType.new(42)
+      assert Jason.encode!(value) == "42"
+    end
+  end
 end

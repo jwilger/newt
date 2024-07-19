@@ -90,6 +90,12 @@ defmodule Newt do
           to_string(value)
         end
       end
+
+      defimpl Jason.Encoder, for: unquote(module_name) do
+        def encode(%{value: value}, opts) do
+          Jason.Encoder.encode(value, opts)
+        end
+      end
     end
   end
 
