@@ -64,4 +64,11 @@ defmodule NewtTest do
       assert Jason.encode!(value) == "42"
     end
   end
+
+  describe "defimpl/2" do
+    test "defines a protocol implementation for the type" do
+      {:ok, value} = ExampleIntegerType.new(42)
+      assert Add.add_99(value) == 141
+    end
+  end
 end
