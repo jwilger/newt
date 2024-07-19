@@ -130,28 +130,5 @@ defmodule Newt do
     end
   end
 
-  @spec newtype(atom(), term()) :: Macro.t()
-  defmacro newtype(type_name, typespec) do
-    quote do
-      defmodule unquote(type_name) do
-        use Newt, type: unquote(typespec)
-      end
-    end
-  end
-
-  @spec newtype(atom(), term(), do: Macro.t()) :: Macro.t()
-  defmacro newtype(type_name, typespec, do: block) do
-    quote do
-      defmodule unquote(type_name) do
-        use Newt, type: unquote(typespec)
-
-        @impl true
-        def validate(var!(value)) do
-          unquote(block)
-        end
-      end
-    end
-  end
-
   @callback validate(value :: any) :: {:ok, any} | {:error, String.t()}
 end
