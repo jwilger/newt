@@ -10,6 +10,10 @@ defmodule Newt.MixProject do
       aliases: aliases(),
       deps: deps(),
       name: "Newt",
+      description: "A newtype abstraction for Elixir",
+      package: [
+        licenses: ["MIT"]
+      ],
       source_url: "https://github.com/jwilger/newt",
       homepage_url: "https://github.com/jwilger/newt/blob/main/README.md",
       docs: [
