@@ -50,7 +50,7 @@ defmodule Newt do
         end
       end
 
-      @spec unwrap(t() | {:error, String.t()}) :: unquote(typespec)
+      @spec unwrap(t() | {:error, String.t()}) :: {:ok, unquote(typespec)} | {:error, String.t()}
       def unwrap(%{value: value} = type) when is_struct(type, unquote(module_name)) do
         {:ok, value}
       end
