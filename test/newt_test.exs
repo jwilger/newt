@@ -23,15 +23,10 @@ defmodule NewtTest do
   describe "unwrap/1" do
     test "returns the wrapped value" do
       {:ok, value} = ExampleStringType.new("example")
-      assert ExampleStringType.unwrap(value) == {:ok, "example"}
+      assert ExampleStringType.unwrap(value) == "example"
 
       {:ok, value} = ExampleIntegerType.new(42)
-      assert ExampleIntegerType.unwrap(value) == {:ok, 42}
-    end
-
-    test "returns an error as-is if passed an error" do
-      message = Faker.Lorem.sentence()
-      assert ExampleStringType.unwrap({:error, message}) == {:error, message}
+      assert ExampleIntegerType.unwrap(value) == 42
     end
   end
 
