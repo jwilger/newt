@@ -59,10 +59,6 @@ defmodule Newt do
         {:error, reason}
       end
 
-      def unwrap(value) do
-        {:error, "#{inspect(value)} is not a valid #{inspect(unquote(type_name))}"}
-      end
-
       defguard is_type(value) when is_struct(value, unquote(module_name))
 
       defmacro __using__(_opts \\ []) do

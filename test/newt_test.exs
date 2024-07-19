@@ -33,11 +33,6 @@ defmodule NewtTest do
       message = Faker.Lorem.sentence()
       assert ExampleStringType.unwrap({:error, message}) == {:error, message}
     end
-
-    test "returns an invalid type error if passed an invalid type" do
-      assert ExampleStringType.unwrap(:foo) ==
-               {:error, "#{inspect(:foo)} is not a valid Newt.ExampleStringType"}
-    end
   end
 
   describe "Inspect implementation" do
