@@ -50,13 +50,38 @@ defmodule Newt do
         end
       end
 
-      @spec unwrap(t()) :: unquote(typespec)
-      def unwrap(%{value: value} = type) when is_struct(type, unquote(module_name)) do
-        value
+      @spec unwrap(any()) :: unquote(typespec) | {:error, String.t()}
+      def unwrap(type) when is_struct(type, unquote(module_name)) do
+        type.value
       end
 
-      def unwrap({:error, reason}) do
-        {:error, reason}
+      def unwrap(value) do
+        raise ArgumentError,
+              "Expected a value of type #{inspect(unquote(type_name))}, but got #{inspect(value)}"
+      end
+
+      @spec validate_type(any()) :: boolean()
+      def validate_type(value) do
+        case ensure_type(value) do
+          {:ok, _} -> true
+          {:error, _} -> false
+        end
+      end
+
+      @spec ensure_type(any()) :: {:ok, t()} | {:error, String.t()}
+      def ensure_type(value) when is_struct(value, unquote(module_name)), do: {:ok, value}
+
+      def ensure_type(value) do
+        {:error,
+         "Expected a value of type #{inspect(unquote(type_name))}, but got #{inspect(value)}"}
+      end
+
+      @spec ensure_type!(any()) :: t()
+      def ensure_type!(value) when is_struct(value, unquote(module_name)), do: value
+
+      def ensure_type!(value) do
+        raise ArgumentError,
+              "Expected a value of type #{inspect(unquote(type_name))}, but got #{inspect(value)}"
       end
 
       defguard is_type(value) when is_struct(value, unquote(module_name))
