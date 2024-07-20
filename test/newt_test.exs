@@ -66,4 +66,19 @@ defmodule NewtTest do
       assert Add.add_99(value) == 141
     end
   end
+
+  describe "maybe_unwrap/1" do
+    test "returns the wrapped value if it is a type" do
+      {:ok, value} = ExampleStringType.new("example")
+      assert Newt.maybe_unwrap(value) == "example"
+
+      {:ok, value} = ExampleIntegerType.new(42)
+      assert Newt.maybe_unwrap(value) == 42
+    end
+
+    test "returns the value if it is not a type" do
+      assert Newt.maybe_unwrap("example") == "example"
+      assert Newt.maybe_unwrap(42) == 42
+    end
+  end
 end

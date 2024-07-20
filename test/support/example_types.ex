@@ -1,5 +1,3 @@
-import Newt
-
 defmodule Newt.ExampleStringType do
   @moduledoc false
   use Newt, type: String.t()
