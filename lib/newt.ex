@@ -8,6 +8,8 @@ defmodule Newt do
   NewTypes in Elixir with minimal boilerplate.
   """
 
+  @callback validate(value :: any) :: {:ok, any} | {:error, String.t()}
+
   defprotocol Unwrap do
     @moduledoc """
     A protocol for unwrapping values from NewTypes.
@@ -149,11 +151,9 @@ defmodule Newt do
   end
 
   def maybe_unwrap(data) do
-    Newt.Unwrap.unwrap(data)
+    Unwrap.unwrap(data)
   rescue
     Protocol.UndefinedError -> data
     x -> reraise(x, __STACKTRACE__)
   end
-
-  @callback validate(value :: any) :: {:ok, any} | {:error, String.t()}
 end
