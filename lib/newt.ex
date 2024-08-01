@@ -74,11 +74,11 @@ defmodule Newt do
               "Expected a value of type #{inspect(unquote(type_name))}, but got #{inspect(value)}"
       end
 
-      @spec validate_type(any()) :: boolean()
+      @spec validate_type(any()) :: :ok | {:error, String.t()}
       def validate_type(value) do
         case ensure_type(value) do
-          {:ok, _} -> true
-          {:error, _} -> false
+          {:ok, _} -> :ok
+          {:error, message} -> {:error, message}
         end
       end
 
