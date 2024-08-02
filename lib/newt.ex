@@ -24,12 +24,14 @@ defmodule Newt do
 
   @spec __using__(keyword(type: term())) :: Macro.t()
   defmacro __using__(opts) do
-    opts = Keyword.validate!(opts, [:type])
+    opts = Keyword.validate!(opts, [:type, ecto_type: :string])
     typespec = Keyword.fetch!(opts, :type)
+    ecto_type = Keyword.fetch!(opts, :ecto_type)
     module_name = "Type_#{UUID.uuid4(:hex)}" |> String.to_atom()
     type_name = __CALLER__.module
 
     quote location: :keep do
+      alias Phoenix.HTML.Safe, as: HtmlSafe
       use TypedStruct
 
       @behaviour Newt
@@ -136,15 +138,66 @@ defmodule Newt do
         end
       end
 
-      defimpl Jason.Encoder, for: unquote(module_name) do
-        def encode(%{value: value}, opts) do
-          Jason.Encoder.encode(value, opts)
+      if Code.ensure_loaded?(Jason.Encoder) do
+        defimpl Jason.Encoder, for: unquote(module_name) do
+          def encode(%{value: value}, opts) do
+            Jason.Encoder.encode(value, opts)
+          end
         end
       end
 
       defimpl Unwrap, for: unquote(module_name) do
         def unwrap(data) do
           unquote(type_name).unwrap(data)
+        end
+      end
+
+      if Code.ensure_loaded?(Phoenix.Param) do
+        defimpl Phoenix.Param, for: unquote(module_name) do
+          def to_param(%{value: value}) do
+            Phoenix.Param.to_param(value)
+          end
+        end
+      end
+
+      if Code.ensure_loaded?(HtmlSafe) do
+        defimpl Phoenix.HTML.Safe, for: unquote(module_name) do
+          def to_iodata(%{value: value}) do
+            HtmlSafe.to_iodata(value)
+          end
+        end
+      end
+
+      if Code.ensure_loaded?(Ecto.Type) do
+        defmodule Ectotype do
+          @moduledoc """
+          Ecto adapter for the type
+          """
+          alias unquote(type_name), as: DomainType
+
+          use Ecto.Type
+
+          @impl true
+          def type, do: unquote(ecto_type)
+
+          @impl true
+          def cast(value) when is_struct(value, unquote(module_name)), do: {:ok, value}
+
+          def cast(_value), do: :error
+
+          @impl true
+          def load(data) do
+            DomainType.new(data)
+          end
+
+          @impl true
+          def dump(value) when is_struct(value, unquote(module_name)) do
+            {:ok, DomainType.unwrap(value)}
+          end
+
+          def dump(_value) do
+            :error
+          end
         end
       end
     end

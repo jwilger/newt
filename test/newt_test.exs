@@ -2,6 +2,7 @@ defmodule NewtTest do
   alias Newt.ExampleIntegerType
   alias Newt.ExampleStringType
   alias Newt.ExampleUnvalidatedStringType
+  alias Phoenix.HTML.Safe, as: HtmlSafe
 
   use Newt.TestCase
   use ExampleUnvalidatedStringType
@@ -79,6 +80,63 @@ defmodule NewtTest do
     test "returns the value if it is not a type" do
       assert Newt.maybe_unwrap("example") == "example"
       assert Newt.maybe_unwrap(42) == 42
+    end
+  end
+
+  describe "Phoenix.Param implementation" do
+    test "returns the wrapped value converted to a param" do
+      {:ok, value} = ExampleStringType.new("example")
+      assert Phoenix.Param.to_param(value) == Phoenix.Param.to_param("example")
+
+      {:ok, value} = ExampleIntegerType.new(42)
+      assert Phoenix.Param.to_param(value) == Phoenix.Param.to_param(42)
+    end
+  end
+
+  describe "Phoenix.HTML.Safe implementatin" do
+    test "returns the wrapped value as a safe string" do
+      {:ok, value} = ExampleStringType.new("example")
+      assert HtmlSafe.to_iodata(value) == HtmlSafe.to_iodata("example")
+
+      {:ok, value} = ExampleIntegerType.new(42)
+      assert HtmlSafe.to_iodata(value) == HtmlSafe.to_iodata(42)
+    end
+  end
+
+  describe "Ecto.Type implementation" do
+    test "type/0" do
+      assert ExampleStringType.Ectotype.type() == :string
+      assert ExampleIntegerType.Ectotype.type() == :integer
+    end
+
+    test "cast/1" do
+      {:ok, value} = ExampleStringType.new("example")
+      assert ExampleStringType.Ectotype.cast(value) == {:ok, value}
+
+      {:ok, value} = ExampleIntegerType.new(42)
+      assert ExampleIntegerType.Ectotype.cast(value) == {:ok, value}
+
+      assert ExampleStringType.Ectotype.cast("example") == :error
+    end
+
+    test "load/1" do
+      {:ok, value} = ExampleStringType.new("example")
+      assert ExampleStringType.Ectotype.load("example") == {:ok, value}
+
+      {:ok, value} = ExampleIntegerType.new(42)
+      assert ExampleIntegerType.Ectotype.load(42) == {:ok, value}
+
+      assert ExampleStringType.Ectotype.load([1]) == {:error, "must be 'example'"}
+    end
+
+    test "dump/1" do
+      {:ok, value} = ExampleStringType.new("example")
+      assert ExampleStringType.Ectotype.dump(value) == {:ok, "example"}
+
+      {:ok, value} = ExampleIntegerType.new(42)
+      assert ExampleIntegerType.Ectotype.dump(value) == {:ok, 42}
+
+      assert ExampleStringType.Ectotype.dump("example") == :error
     end
   end
 end
