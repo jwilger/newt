@@ -18,7 +18,7 @@ end
 
 defmodule Newt.ExampleIntegerType do
   @moduledoc false
-  use Newt, type: integer()
+  use Newt, type: integer(), ecto_type: :integer
 
   def validate(value) do
     case value do
