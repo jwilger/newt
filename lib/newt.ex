@@ -24,11 +24,15 @@ defmodule Newt do
 
   @spec __using__(keyword(type: term())) :: Macro.t()
   defmacro __using__(opts) do
-    opts = Keyword.validate!(opts, [:type, ecto_type: :string])
+    opts =
+      opts
+      |> Keyword.validate!([:type, ecto_type: :string])
+      |> Keyword.put_new(:type_name, __CALLER__.module)
+      |> Keyword.put_new(:module_name, "Type_#{UUID.uuid4(:hex)}" |> String.to_atom())
+
     typespec = Keyword.fetch!(opts, :type)
-    ecto_type = Keyword.fetch!(opts, :ecto_type)
-    module_name = "Type_#{UUID.uuid4(:hex)}" |> String.to_atom()
-    type_name = __CALLER__.module
+    module_name = Keyword.fetch!(opts, :module_name)
+    type_name = Keyword.fetch!(opts, :type_name)
 
     quote location: :keep do
       alias Phoenix.HTML.Safe, as: HtmlSafe
@@ -118,6 +122,21 @@ defmodule Newt do
         end
       end
 
+      unquote(generate_inspect_impl(opts))
+      unquote(generate_string_chars_impl(opts))
+      unquote(generate_jason_encoder_impl(opts))
+      unquote(generate_unwrap_impl(opts))
+      unquote(generate_phoenix_param_impl(opts))
+      unquote(generate_html_safe_impl(opts))
+      unquote(generate_ecto_type(opts))
+    end
+  end
+
+  defp generate_inspect_impl(opts) do
+    type_name = Keyword.fetch!(opts, :type_name)
+    module_name = Keyword.fetch!(opts, :module_name)
+
+    quote do
       defimpl Inspect, for: unquote(module_name) do
         import Inspect.Algebra
 
@@ -131,13 +150,25 @@ defmodule Newt do
           ])
         end
       end
+    end
+  end
 
+  defp generate_string_chars_impl(opts) do
+    module_name = Keyword.fetch!(opts, :module_name)
+
+    quote do
       defimpl String.Chars, for: unquote(module_name) do
         def to_string(%{value: value}) do
           to_string(value)
         end
       end
+    end
+  end
 
+  defp generate_jason_encoder_impl(opts) do
+    module_name = Keyword.fetch!(opts, :module_name)
+
+    quote do
       if Code.ensure_loaded?(Jason.Encoder) do
         defimpl Jason.Encoder, for: unquote(module_name) do
           def encode(%{value: value}, opts) do
@@ -145,13 +176,25 @@ defmodule Newt do
           end
         end
       end
+    end
+  end
 
+  defp generate_unwrap_impl(opts) do
+    module_name = Keyword.fetch!(opts, :module_name)
+
+    quote do
       defimpl Unwrap, for: unquote(module_name) do
-        def unwrap(data) do
-          unquote(type_name).unwrap(data)
+        def unwrap(%{value: value}) do
+          value
         end
       end
+    end
+  end
 
+  defp generate_phoenix_param_impl(opts) do
+    module_name = Keyword.fetch!(opts, :module_name)
+
+    quote do
       if Code.ensure_loaded?(Phoenix.Param) do
         defimpl Phoenix.Param, for: unquote(module_name) do
           def to_param(%{value: value}) do
@@ -159,7 +202,13 @@ defmodule Newt do
           end
         end
       end
+    end
+  end
 
+  defp generate_html_safe_impl(opts) do
+    module_name = Keyword.fetch!(opts, :module_name)
+
+    quote do
       if Code.ensure_loaded?(HtmlSafe) do
         defimpl Phoenix.HTML.Safe, for: unquote(module_name) do
           def to_iodata(%{value: value}) do
@@ -167,7 +216,15 @@ defmodule Newt do
           end
         end
       end
+    end
+  end
 
+  defp generate_ecto_type(opts) do
+    type_name = Keyword.fetch!(opts, :type_name)
+    ecto_type = Keyword.fetch!(opts, :ecto_type)
+    module_name = Keyword.fetch!(opts, :module_name)
+
+    quote do
       if Code.ensure_loaded?(Ecto.Type) do
         defmodule Ectotype do
           @moduledoc """
