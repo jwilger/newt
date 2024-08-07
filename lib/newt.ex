@@ -62,7 +62,9 @@ defmodule Newt do
 
       defoverridable validate: 1
 
-      @spec new(unquote(typespec)) :: {:ok, t()} | {:error, String.t()}
+      @spec new(unquote(module_name).t() | unquote(typespec)) :: {:ok, t()} | {:error, String.t()}
+      def new(value) when is_struct(value, unquote(module_name)), do: {:ok, value}
+
       def new(value) do
         case validate(value) do
           {:ok, value} -> {:ok, %unquote(module_name){value: value}}
