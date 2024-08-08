@@ -16,12 +16,30 @@ defmodule NewtTest do
 
     test "returns the argument if the argument is already the type" do
       {:ok, value} = ExampleUnvalidatedStringType.new(Faker.Lorem.word())
-      {:ok, ^value} = ExampleUnvalidatedStringType.new(value)
+      assert {:ok, ^value} = ExampleUnvalidatedStringType.new(value)
     end
 
     property "returns an error if the value is not valid" do
       check all value <- term() |> filter(fn v -> v != "example" end) do
         {:error, "must be 'example'"} = ExampleStringType.new(value)
+      end
+    end
+  end
+
+  describe "new!/1" do
+    test "returns the passed primitive value as the type" do
+      value = ExampleUnvalidatedStringType.new!(Faker.Lorem.word())
+      assert ExampleUnvalidatedStringType.is_type(value)
+    end
+
+    test "returns the argument if the argument is already the type" do
+      value = ExampleUnvalidatedStringType.new!(Faker.Lorem.word())
+      assert ^value = ExampleUnvalidatedStringType.new!(value)
+    end
+
+    property "returns an error if the value is not valid" do
+      check all value <- term() |> filter(fn v -> v != "example" end) do
+        assert_raise(ArgumentError, "must be 'example'", fn -> ExampleStringType.new!(value) end)
       end
     end
   end
