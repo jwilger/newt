@@ -28,7 +28,10 @@ defmodule Newt do
       opts
       |> Keyword.validate!([:type, ecto_type: :string])
       |> Keyword.put_new(:type_name, __CALLER__.module)
-      |> Keyword.put_new(:module_name, "Type_#{UUID.uuid4(:hex)}" |> String.to_atom())
+      |> Keyword.put_new(
+        :module_name,
+        "#{__CALLER__.module}_InnerType_#{UUID.uuid4(:hex)}" |> String.to_atom()
+      )
 
     typespec = Keyword.fetch!(opts, :type)
     module_name = Keyword.fetch!(opts, :module_name)
