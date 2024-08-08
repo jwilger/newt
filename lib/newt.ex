@@ -75,6 +75,14 @@ defmodule Newt do
         end
       end
 
+      @spec new!(unquote(module_name).t() | unquote(typespec)) :: t()
+      def new!(value) do
+        case new(value) do
+          {:ok, value} -> value
+          {:error, reason} -> raise ArgumentError, reason
+        end
+      end
+
       @spec unwrap(any()) :: unquote(typespec) | {:error, String.t()}
       def unwrap(type) when is_struct(type, unquote(module_name)) do
         type.value
