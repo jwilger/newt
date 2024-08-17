@@ -16,6 +16,7 @@
           buildInputs = [
             beam.interpreters.erlang_27
             beam.packages.erlang_27.elixir_1_17
+            elixir-ls
           ]
           ++ lib.optionals stdenv.isLinux [
             # For ExUnit Notifier on Linux.
