@@ -139,7 +139,8 @@ defmodule NewtTest do
       {:ok, value} = ExampleIntegerType.new(42)
       assert ExampleIntegerType.Ectotype.cast(value) == {:ok, value}
 
-      assert ExampleStringType.Ectotype.cast("example") == :error
+      assert ExampleStringType.Ectotype.cast("example") ==
+               {:ok, ExampleStringType.new!("example")}
     end
 
     test "load/1" do

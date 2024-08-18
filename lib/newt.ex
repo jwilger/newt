@@ -253,7 +253,12 @@ defmodule Newt do
           @impl true
           def cast(value) when is_struct(value, unquote(module_name)), do: {:ok, value}
 
-          def cast(_value), do: :error
+          def cast(value) do
+            case DomainType.new(value) do
+              {:ok, value} -> {:ok, value}
+              {:error, _message} -> :error
+            end
+          end
 
           @impl true
           def load(data) do
