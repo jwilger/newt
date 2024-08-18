@@ -232,6 +232,7 @@ defmodule Newt do
     end
   end
 
+  # credo:disable-for-next-line Credo.Check.Refactor.CyclomaticComplexity
   defp generate_ecto_type(opts) do
     type_name = Keyword.fetch!(opts, :type_name)
     ecto_type = Keyword.fetch!(opts, :ecto_type)
