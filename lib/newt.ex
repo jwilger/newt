@@ -248,6 +248,8 @@ defmodule Newt do
 
           use Ecto.Type
 
+          @type t() :: DomainType.t()
+
           @impl true
           def type, do: unquote(ecto_type)
 
