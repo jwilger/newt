@@ -28,13 +28,8 @@ defmodule Newt do
       opts
       |> Keyword.validate!([:type, ecto_type: :string])
       |> Keyword.put_new(:type_name, __CALLER__.module)
-      |> Keyword.put_new(
-        :module_name,
-        "#{__CALLER__.module}_InnerType_#{UUID.uuid4(:hex)}" |> String.to_atom()
-      )
 
     typespec = Keyword.fetch!(opts, :type)
-    module_name = Keyword.fetch!(opts, :module_name)
     type_name = Keyword.fetch!(opts, :type_name)
 
     quote location: :keep do
@@ -43,9 +38,7 @@ defmodule Newt do
 
       @behaviour Newt
 
-      @opaque t() :: unquote(module_name).t()
-
-      typedstruct enforce: true, opaque: true, module: unquote(module_name) do
+      typedstruct enforce: true, opaque: true do
         field(:value, unquote(typespec))
       end
 
@@ -65,17 +58,17 @@ defmodule Newt do
 
       defoverridable validate: 1
 
-      @spec new(unquote(module_name).t() | unquote(typespec)) :: {:ok, t()} | {:error, String.t()}
-      def new(value) when is_struct(value, unquote(module_name)), do: {:ok, value}
+      @spec new(t() | unquote(typespec)) :: {:ok, t()} | {:error, String.t()}
+      def new(%__MODULE__{} = value), do: {:ok, value}
 
       def new(value) do
         case validate(value) do
-          {:ok, value} -> {:ok, %unquote(module_name){value: value}}
+          {:ok, value} -> {:ok, %__MODULE__{value: value}}
           {:error, reason} -> {:error, reason}
         end
       end
 
-      @spec new!(unquote(module_name).t() | unquote(typespec)) :: t()
+      @spec new!(t() | unquote(typespec)) :: t()
       def new!(value) do
         case new(value) do
           {:ok, value} -> value
@@ -83,14 +76,9 @@ defmodule Newt do
         end
       end
 
-      @spec unwrap(any()) :: unquote(typespec) | {:error, String.t()}
-      def unwrap(type) when is_struct(type, unquote(module_name)) do
+      @spec unwrap(%__MODULE__{}) :: unquote(typespec) | {:error, String.t()}
+      def unwrap(%__MODULE__{} = type) do
         type.value
-      end
-
-      def unwrap(value) do
-        raise ArgumentError,
-              "Expected a value of type #{inspect(unquote(type_name))}, but got #{inspect(value)}"
       end
 
       @spec validate_type(any()) :: :ok | {:error, String.t()}
@@ -102,7 +90,7 @@ defmodule Newt do
       end
 
       @spec ensure_type(any()) :: {:ok, t()} | {:error, String.t()}
-      def ensure_type(value) when is_struct(value, unquote(module_name)), do: {:ok, value}
+      def ensure_type(%__MODULE__{} = value), do: {:ok, value}
 
       def ensure_type(value) do
         {:error,
@@ -110,30 +98,14 @@ defmodule Newt do
       end
 
       @spec ensure_type!(any()) :: t()
-      def ensure_type!(value) when is_struct(value, unquote(module_name)), do: value
+      def ensure_type!(%__MODULE__{} = value), do: value
 
       def ensure_type!(value) do
         raise ArgumentError,
               "Expected a value of type #{inspect(unquote(type_name))}, but got #{inspect(value)}"
       end
 
-      defguard is_type(value) when is_struct(value, unquote(module_name))
-
-      defmacro __using__(_opts \\ []) do
-        quote do
-          require unquote(__MODULE__)
-        end
-      end
-
-      defmacro defimpl(protocol, do: block) do
-        module_name = unquote(module_name)
-
-        quote do
-          defimpl unquote(protocol), for: unquote(module_name) do
-            unquote(block)
-          end
-        end
-      end
+      defguard is_type(value) when is_struct(value, __MODULE__)
 
       unquote(generate_inspect_impl(opts))
       unquote(generate_string_chars_impl(opts))
@@ -147,10 +119,9 @@ defmodule Newt do
 
   defp generate_inspect_impl(opts) do
     type_name = Keyword.fetch!(opts, :type_name)
-    module_name = Keyword.fetch!(opts, :module_name)
 
     quote do
-      defimpl Inspect, for: unquote(module_name) do
+      defimpl Inspect, for: unquote(type_name) do
         import Inspect.Algebra
 
         def inspect(%{value: value}, opts) do
@@ -167,10 +138,10 @@ defmodule Newt do
   end
 
   defp generate_string_chars_impl(opts) do
-    module_name = Keyword.fetch!(opts, :module_name)
+    type_name = Keyword.fetch!(opts, :type_name)
 
     quote do
-      defimpl String.Chars, for: unquote(module_name) do
+      defimpl String.Chars, for: unquote(type_name) do
         def to_string(%{value: value}) do
           to_string(value)
         end
@@ -179,11 +150,11 @@ defmodule Newt do
   end
 
   defp generate_jason_encoder_impl(opts) do
-    module_name = Keyword.fetch!(opts, :module_name)
+    type_name = Keyword.fetch!(opts, :type_name)
 
     quote do
       if Code.ensure_loaded?(Jason.Encoder) do
-        defimpl Jason.Encoder, for: unquote(module_name) do
+        defimpl Jason.Encoder, for: unquote(type_name) do
           def encode(%{value: value}, opts) do
             Jason.Encoder.encode(value, opts)
           end
@@ -193,23 +164,23 @@ defmodule Newt do
   end
 
   defp generate_unwrap_impl(opts) do
-    module_name = Keyword.fetch!(opts, :module_name)
+    type_name = Keyword.fetch!(opts, :type_name)
 
     quote do
-      defimpl Unwrap, for: unquote(module_name) do
-        def unwrap(%{value: value}) do
-          value
+      defimpl Unwrap, for: unquote(type_name) do
+        def unwrap(value) do
+          unquote(type_name).unwrap(value)
         end
       end
     end
   end
 
   defp generate_phoenix_param_impl(opts) do
-    module_name = Keyword.fetch!(opts, :module_name)
+    type_name = Keyword.fetch!(opts, :type_name)
 
     quote do
       if Code.ensure_loaded?(Phoenix.Param) do
-        defimpl Phoenix.Param, for: unquote(module_name) do
+        defimpl Phoenix.Param, for: unquote(type_name) do
           def to_param(%{value: value}) do
             Phoenix.Param.to_param(value)
           end
@@ -219,11 +190,11 @@ defmodule Newt do
   end
 
   defp generate_html_safe_impl(opts) do
-    module_name = Keyword.fetch!(opts, :module_name)
+    type_name = Keyword.fetch!(opts, :type_name)
 
     quote do
       if Code.ensure_loaded?(HtmlSafe) do
-        defimpl Phoenix.HTML.Safe, for: unquote(module_name) do
+        defimpl Phoenix.HTML.Safe, for: unquote(type_name) do
           def to_iodata(%{value: value}) do
             HtmlSafe.to_iodata(value)
           end
@@ -236,7 +207,6 @@ defmodule Newt do
   defp generate_ecto_type(opts) do
     type_name = Keyword.fetch!(opts, :type_name)
     ecto_type = Keyword.fetch!(opts, :ecto_type)
-    module_name = Keyword.fetch!(opts, :module_name)
 
     quote do
       if Code.ensure_loaded?(Ecto.Type) do
@@ -254,7 +224,7 @@ defmodule Newt do
           def type, do: unquote(ecto_type)
 
           @impl true
-          def cast(value) when is_struct(value, unquote(module_name)), do: {:ok, value}
+          def cast(value) when is_struct(value, unquote(type_name)), do: {:ok, value}
 
           def cast(value) do
             case DomainType.new(value) do
@@ -269,7 +239,7 @@ defmodule Newt do
           end
 
           @impl true
-          def dump(value) when is_struct(value, unquote(module_name)) do
+          def dump(value) when is_struct(value, unquote(type_name)) do
             {:ok, DomainType.unwrap(value)}
           end
 

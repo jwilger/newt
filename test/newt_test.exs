@@ -4,9 +4,10 @@ defmodule NewtTest do
   alias Newt.ExampleUnvalidatedStringType
   alias Phoenix.HTML.Safe, as: HtmlSafe
 
+  require ExampleUnvalidatedStringType
+  require ExampleStringType
+
   use Newt.TestCase
-  use ExampleUnvalidatedStringType
-  use ExampleStringType
 
   describe "new/1" do
     test "returns the passed primitive value as the type" do
@@ -81,13 +82,6 @@ defmodule NewtTest do
 
       {:ok, value} = ExampleIntegerType.new(42)
       assert Jason.encode!(value) == "42"
-    end
-  end
-
-  describe "defimpl/2" do
-    test "defines a protocol implementation for the type" do
-      {:ok, value} = ExampleIntegerType.new(42)
-      assert Add.add_99(value) == 141
     end
   end
 
