@@ -12,7 +12,7 @@ defmodule NewtTest do
   describe "new/1" do
     test "returns the passed primitive value as the type" do
       {:ok, value} = ExampleUnvalidatedStringType.new(Faker.Lorem.word())
-      assert ExampleUnvalidatedStringType.is_type(value)
+      assert is_struct(value, ExampleUnvalidatedStringType)
     end
 
     test "returns the argument if the argument is already the type" do
@@ -30,7 +30,7 @@ defmodule NewtTest do
   describe "new!/1" do
     test "returns the passed primitive value as the type" do
       value = ExampleUnvalidatedStringType.new!(Faker.Lorem.word())
-      assert ExampleUnvalidatedStringType.is_type(value)
+      assert is_struct(value, ExampleUnvalidatedStringType)
     end
 
     test "returns the argument if the argument is already the type" do

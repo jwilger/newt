@@ -38,7 +38,7 @@ defmodule Newt do
 
       @behaviour Newt
 
-      typedstruct enforce: true, opaque: true do
+      typedstruct enforce: true do
         field(:value, unquote(typespec))
       end
 
@@ -104,8 +104,6 @@ defmodule Newt do
         raise ArgumentError,
               "Expected a value of type #{inspect(unquote(type_name))}, but got #{inspect(value)}"
       end
-
-      defguard is_type(value) when is_struct(value, __MODULE__)
 
       unquote(generate_inspect_impl(opts))
       unquote(generate_string_chars_impl(opts))
