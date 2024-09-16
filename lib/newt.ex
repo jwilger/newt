@@ -22,6 +22,10 @@ defmodule Newt do
     def unwrap(data)
   end
 
+  defmodule ValidationError do
+    defexception [:type, :message, :value]
+  end
+
   @spec __using__(keyword(type: term())) :: Macro.t()
   defmacro __using__(opts) do
     opts =
@@ -43,12 +47,11 @@ defmodule Newt do
       end
 
       @impl true
-
-      # N.B. This clause of validate should never *actually* be called, but
-      # having it prevents a dialyzer warning with the case statement in new/1.
       def validate(
             Newt.StupidPlaceholderValueThatWouldBeRidiculousToEverUseInYourProgramSoDoNotDoItOK
           ) do
+        # N.B. This clause of validate should never *actually* be called, but
+        # having it prevents a dialyzer warning with the case statement in new/1.
         {:error, "418 - I'm a teapot"}
       end
 
@@ -58,13 +61,17 @@ defmodule Newt do
 
       defoverridable validate: 1
 
-      @spec new(t() | unquote(typespec)) :: {:ok, t()} | {:error, String.t()}
+      @spec new(t() | unquote(typespec)) :: {:ok, t()} | {:error, Newt.ValidationError.t()}
       def new(%__MODULE__{} = value), do: {:ok, value}
 
       def new(value) do
         case validate(value) do
-          {:ok, value} -> {:ok, %__MODULE__{value: value}}
-          {:error, reason} -> {:error, reason}
+          {:ok, valid_value} ->
+            {:ok, %__MODULE__{value: valid_value}}
+
+          {:error, reason} ->
+            {:error,
+             Newt.ValidationError.exception(message: reason, value: value, type: __MODULE__)}
         end
       end
 
@@ -72,7 +79,7 @@ defmodule Newt do
       def new!(value) do
         case new(value) do
           {:ok, value} -> value
-          {:error, reason} -> raise ArgumentError, reason
+          {:error, reason} -> raise reason
         end
       end
 
