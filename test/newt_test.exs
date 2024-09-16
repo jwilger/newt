@@ -2,6 +2,7 @@ defmodule NewtTest do
   alias Newt.ExampleIntegerType
   alias Newt.ExampleStringType
   alias Newt.ExampleUnvalidatedStringType
+  alias Newt.ValidationError
   alias Phoenix.HTML.Safe, as: HtmlSafe
 
   require ExampleUnvalidatedStringType
@@ -22,7 +23,8 @@ defmodule NewtTest do
 
     property "returns an error if the value is not valid" do
       check all value <- term() |> filter(fn v -> v != "example" end) do
-        {:error, "must be 'example'"} = ExampleStringType.new(value)
+        {:error, %ValidationError{message: "must be 'example'"}} =
+          ExampleStringType.new(value)
       end
     end
   end
@@ -40,7 +42,9 @@ defmodule NewtTest do
 
     property "returns an error if the value is not valid" do
       check all value <- term() |> filter(fn v -> v != "example" end) do
-        assert_raise(ArgumentError, "must be 'example'", fn -> ExampleStringType.new!(value) end)
+        assert_raise(ValidationError, "must be 'example'", fn ->
+          ExampleStringType.new!(value)
+        end)
       end
     end
   end
@@ -144,7 +148,8 @@ defmodule NewtTest do
       {:ok, value} = ExampleIntegerType.new(42)
       assert ExampleIntegerType.Ectotype.load(42) == {:ok, value}
 
-      assert ExampleStringType.Ectotype.load([1]) == {:error, "must be 'example'"}
+      assert {:error, %ValidationError{message: "must be 'example'"}} =
+               ExampleStringType.Ectotype.load([1])
     end
 
     test "dump/1" do
