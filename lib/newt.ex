@@ -23,6 +23,7 @@ defmodule Newt do
   end
 
   defmodule ValidationError do
+    @type t :: %__MODULE__{}
     defexception [:type, :message, :value]
   end
 
