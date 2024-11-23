@@ -176,14 +176,19 @@ defmodule NewtTest do
     end
 
     test "returns false if the argument is not a Newt type" do
-      check all arg <- term() |> filter(fn 
-        arg when is_struct(arg) -> try do
-          :ok != Protocol.assert_impl!(Newt, arg)
-          rescue
-            ArgumentError -> true
-        end
-        _ -> true
-      end) do
+      check all arg <-
+                  term()
+                  |> filter(fn
+                    arg when is_struct(arg) ->
+                      try do
+                        :ok != Protocol.assert_impl!(Newt, arg)
+                      rescue
+                        ArgumentError -> true
+                      end
+
+                    _ ->
+                      true
+                  end) do
         refute Newt.type!(arg, ExampleStringType)
       end
     end
