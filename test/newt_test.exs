@@ -7,6 +7,7 @@ defmodule NewtTest do
 
   require ExampleUnvalidatedStringType
   require ExampleStringType
+  require Newt
 
   use Newt.TestCase
 
@@ -160,6 +161,31 @@ defmodule NewtTest do
       assert ExampleIntegerType.Ectotype.dump(value) == {:ok, 42}
 
       assert ExampleStringType.Ectotype.dump("example") == :error
+    end
+  end
+
+  describe "type!/2 macro" do
+    test "returns true if the argument is of the given type" do
+      arg = ExampleStringType.new!("example")
+      assert Newt.type!(arg, ExampleStringType)
+    end
+
+    test "returns false if the argument is not of the given type" do
+      arg = ExampleStringType.new!("example")
+      refute Newt.type!(arg, ExampleIntegerType)
+    end
+
+    test "returns false if the argument is not a Newt type" do
+      check all arg <- term() |> filter(fn 
+        arg when is_struct(arg) -> try do
+          :ok != Protocol.assert_impl!(Newt, arg)
+          rescue
+            ArgumentError -> true
+        end
+        _ -> true
+      end) do
+        refute Newt.type!(arg, ExampleStringType)
+      end
     end
   end
 end
