@@ -167,12 +167,24 @@ defmodule NewtTest do
   describe "type!/2 macro" do
     test "returns true if the argument is of the given type" do
       arg = ExampleStringType.new!("example")
-      assert Newt.type!(arg, ExampleStringType)
+
+      func = fn
+        arg when Newt.type!(arg, ExampleStringType) -> true
+        _ -> false
+      end
+
+      assert func.(arg)
     end
 
     test "returns false if the argument is not of the given type" do
       arg = ExampleStringType.new!("example")
-      refute Newt.type!(arg, ExampleIntegerType)
+
+      func = fn
+        arg when Newt.type!(arg, ExampleIntegerType) -> true
+        _ -> false
+      end
+
+      refute func.(arg)
     end
 
     test "returns false if the argument is not a Newt type" do
@@ -189,7 +201,12 @@ defmodule NewtTest do
                     _ ->
                       true
                   end) do
-        refute Newt.type!(arg, ExampleStringType)
+        func = fn
+          arg when Newt.type!(arg, ExampleIntegerType) -> true
+          _ -> false
+        end
+
+        refute func.(arg)
       end
     end
   end
