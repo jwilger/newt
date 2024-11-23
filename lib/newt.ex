@@ -268,8 +268,8 @@ defmodule Newt do
   A guard ensuring that an argument is of the given Newt type
   """
   defmacro type!(argument, type) do
-    quote bind_quoted: [argument: argument, type: type] do
-      is_struct(argument, type)
+    quote do
+      is_struct(unquote(argument), unquote(type))
     end
   end
 end
