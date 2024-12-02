@@ -2,7 +2,7 @@ defmodule Newt.ExampleStringType do
   @moduledoc false
   use Newt, type: String.t()
 
-  @impl true
+  @impl Newt
   def validate(value) do
     case value do
       "example" -> {:ok, value}
@@ -20,10 +20,21 @@ defmodule Newt.ExampleIntegerType do
   @moduledoc false
   use Newt, type: integer(), ecto_type: :integer
 
+  @impl Newt
   def validate(value) do
     case value do
       42 -> {:ok, value}
       _ -> {:error, "must be 42"}
     end
+  end
+end
+
+defmodule Newt.ExampleOverriddenNewFunctionType do
+  @moduledoc false
+  use Newt, type: String.t()
+
+  @impl Newt
+  def new(_value) do
+    {:ok, "Not what you expected."}
   end
 end

@@ -9,6 +9,7 @@ defmodule Newt do
   """
 
   @callback validate(value :: any) :: {:ok, any} | {:error, String.t()}
+  @callback new(value :: any) :: {:ok, any} | {:error, String.t()}
 
   defprotocol Unwrap do
     @moduledoc """
@@ -47,7 +48,7 @@ defmodule Newt do
         field(:value, unquote(typespec))
       end
 
-      @impl true
+      @impl Newt
       def validate(
             Newt.StupidPlaceholderValueThatWouldBeRidiculousToEverUseInYourProgramSoDoNotDoItOK
           ) do
@@ -62,6 +63,7 @@ defmodule Newt do
 
       defoverridable validate: 1
 
+      @impl Newt
       @spec new(t() | unquote(typespec)) :: {:ok, t()} | {:error, Newt.ValidationError.t()}
       def new(%__MODULE__{} = value), do: {:ok, value}
 
@@ -75,6 +77,8 @@ defmodule Newt do
              Newt.ValidationError.exception(message: reason, value: value, type: __MODULE__)}
         end
       end
+
+      defoverridable new: 1
 
       @spec new!(t() | unquote(typespec)) :: t()
       def new!(value) do
