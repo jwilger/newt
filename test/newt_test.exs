@@ -1,5 +1,6 @@
 defmodule NewtTest do
   alias Newt.ExampleIntegerType
+  alias Newt.ExampleOverriddenNewFunctionType
   alias Newt.ExampleStringType
   alias Newt.ExampleUnvalidatedStringType
   alias Newt.ValidationError
@@ -27,6 +28,11 @@ defmodule NewtTest do
         {:error, %ValidationError{message: "must be 'example'"}} =
           ExampleStringType.new(value)
       end
+    end
+
+    test "can be overridden by the type" do
+      {:ok, value} = ExampleOverriddenNewFunctionType.new(Faker.Lorem.word())
+      assert value == "Not what you expected."
     end
   end
 
