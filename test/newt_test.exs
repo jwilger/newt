@@ -1,6 +1,7 @@
 defmodule NewtTest do
   alias Newt.ExampleIntegerType
   alias Newt.ExampleStringType
+  alias Newt.ExampleUnstorableType
   alias Newt.ExampleUnvalidatedStringType
   alias Newt.ValidationError
   alias Phoenix.HTML.Safe, as: HtmlSafe
@@ -68,6 +69,11 @@ defmodule NewtTest do
       {:ok, value} = ExampleIntegerType.new(42)
       assert inspect(value) == "#Newt.ExampleIntegerType<42>"
     end
+
+    test "does not reveal the value of unstorable types" do
+      {:ok, value} = ExampleUnstorableType.new("example")
+      assert inspect(value) == "#Newt.ExampleUnstorableType<REDACTED>"
+    end
   end
 
   describe "String.Chars implementation" do
@@ -78,6 +84,11 @@ defmodule NewtTest do
       {:ok, value} = ExampleIntegerType.new(42)
       assert to_string(value) == "42"
     end
+
+    test "does not reveal the value of unstorable types" do
+      {:ok, value} = ExampleUnstorableType.new("example")
+      assert to_string(value) == "**REDACTED**"
+    end
   end
 
   describe "Jason.Encoder implementation" do
@@ -87,6 +98,11 @@ defmodule NewtTest do
 
       {:ok, value} = ExampleIntegerType.new(42)
       assert Jason.encode!(value) == "42"
+    end
+
+    test "does not reveal the value of unstorable types" do
+      {:ok, value} = ExampleUnstorableType.new("example")
+      assert Jason.encode!(value) == "\"**REDACTED**\""
     end
   end
 
@@ -102,6 +118,11 @@ defmodule NewtTest do
     test "returns the value if it is not a type" do
       assert Newt.maybe_unwrap("example") == "example"
       assert Newt.maybe_unwrap(42) == 42
+    end
+
+    test "returns the value if it is an unstorable type" do
+      {:ok, value} = ExampleUnstorableType.new("example")
+      assert Newt.maybe_unwrap(value) == value
     end
   end
 
@@ -129,6 +150,7 @@ defmodule NewtTest do
     test "type/0" do
       assert ExampleStringType.Ectotype.type() == :string
       assert ExampleIntegerType.Ectotype.type() == :integer
+      assert ExampleUnstorableType.Ectotype.type() == :unstorable
     end
 
     test "cast/1" do
@@ -140,6 +162,9 @@ defmodule NewtTest do
 
       assert ExampleStringType.Ectotype.cast("example") ==
                {:ok, ExampleStringType.new!("example")}
+
+      assert ExampleUnstorableType.Ectotype.cast("example") ==
+               ExampleUnstorableType.new("example")
     end
 
     test "load/1" do
@@ -151,6 +176,9 @@ defmodule NewtTest do
 
       assert {:error, %ValidationError{message: "must be 'example'"}} =
                ExampleStringType.Ectotype.load([1])
+
+      assert ExampleUnstorableType.Ectotype.load("example") ==
+               ExampleUnstorableType.new("example")
     end
 
     test "dump/1" do
@@ -161,6 +189,11 @@ defmodule NewtTest do
       assert ExampleIntegerType.Ectotype.dump(value) == {:ok, 42}
 
       assert ExampleStringType.Ectotype.dump("example") == :error
+
+      {:ok, value} = ExampleUnstorableType.new("example")
+      assert_raise Newt.UnstorableError, fn ->
+        ExampleUnstorableType.Ectotype.dump(value)
+      end
     end
   end
 
