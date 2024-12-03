@@ -27,6 +27,11 @@ defmodule Newt do
     defexception [:type, :message, :value]
   end
 
+  defmodule UnstorableError do
+    @type t :: %__MODULE__{}
+    defexception [:message]
+  end
+
   @spec __using__(keyword(type: term())) :: Macro.t()
   defmacro __using__(opts) do
     opts =
@@ -125,19 +130,36 @@ defmodule Newt do
 
   defp generate_inspect_impl(opts) do
     type_name = Keyword.fetch!(opts, :type_name)
+    ecto_type = Keyword.fetch!(opts, :ecto_type)
 
-    quote do
-      defimpl Inspect, for: unquote(type_name) do
-        import Inspect.Algebra
+    if ecto_type == :unstorable do
+      quote do
+        defimpl Inspect, for: unquote(type_name) do
+          import Inspect.Algebra
 
-        def inspect(%{value: value}, opts) do
-          concat([
-            "#",
-            to_doc(unquote(type_name), opts),
-            string("<"),
-            to_doc(value, opts),
-            string(">")
-          ])
+          def inspect(%{value: value}, opts) do
+            concat([
+              "#",
+              to_doc(unquote(type_name), opts),
+              string("<REDACTED>")
+            ])
+          end
+        end
+      end
+    else
+      quote do
+        defimpl Inspect, for: unquote(type_name) do
+          import Inspect.Algebra
+
+          def inspect(%{value: value}, opts) do
+            concat([
+              "#",
+              to_doc(unquote(type_name), opts),
+              string("<"),
+              to_doc(value, opts),
+              string(">")
+            ])
+          end
         end
       end
     end
@@ -145,11 +167,22 @@ defmodule Newt do
 
   defp generate_string_chars_impl(opts) do
     type_name = Keyword.fetch!(opts, :type_name)
+    ecto_type = Keyword.fetch!(opts, :ecto_type)
 
-    quote do
-      defimpl String.Chars, for: unquote(type_name) do
-        def to_string(%{value: value}) do
-          to_string(value)
+    if ecto_type == :unstorable do
+      quote do
+        defimpl String.Chars, for: unquote(type_name) do
+          def to_string(_type) do
+            "**REDACTED**"
+          end
+        end
+      end
+    else
+      quote do
+        defimpl String.Chars, for: unquote(type_name) do
+          def to_string(%{value: value}) do
+            to_string(value)
+          end
         end
       end
     end
@@ -157,12 +190,25 @@ defmodule Newt do
 
   defp generate_jason_encoder_impl(opts) do
     type_name = Keyword.fetch!(opts, :type_name)
+    ecto_type = Keyword.fetch!(opts, :ecto_type)
 
-    quote do
-      if Code.ensure_loaded?(Jason.Encoder) do
-        defimpl Jason.Encoder, for: unquote(type_name) do
-          def encode(%{value: value}, opts) do
-            Jason.Encoder.encode(value, opts)
+    if ecto_type == :unstorable do
+      quote do
+        if Code.ensure_loaded?(Jason.Encoder) do
+          defimpl Jason.Encoder, for: unquote(type_name) do
+            def encode(_type, opts) do
+              Jason.Encoder.encode("**REDACTED**", opts)
+            end
+          end
+        end
+      end
+    else
+      quote do
+        if Code.ensure_loaded?(Jason.Encoder) do
+          defimpl Jason.Encoder, for: unquote(type_name) do
+            def encode(%{value: value}, opts) do
+              Jason.Encoder.encode(value, opts)
+            end
           end
         end
       end
@@ -171,11 +217,28 @@ defmodule Newt do
 
   defp generate_unwrap_impl(opts) do
     type_name = Keyword.fetch!(opts, :type_name)
+    ecto_type = Keyword.fetch!(opts, :ecto_type)
 
-    quote do
-      defimpl Unwrap, for: unquote(type_name) do
-        def unwrap(value) do
-          unquote(type_name).unwrap(value)
+    if ecto_type == :unstorable do
+      quote do
+        defimpl Unwrap, for: unquote(type_name) do
+          require Logger
+
+          def unwrap(value) do
+            Logger.warning(
+              "You are attempting to unwrap an unstorable (secret) value, so I am just returning the type."
+            )
+
+            value
+          end
+        end
+      end
+    else
+      quote do
+        defimpl Unwrap, for: unquote(type_name) do
+          def unwrap(value) do
+            unquote(type_name).unwrap(value)
+          end
         end
       end
     end
@@ -183,12 +246,25 @@ defmodule Newt do
 
   defp generate_phoenix_param_impl(opts) do
     type_name = Keyword.fetch!(opts, :type_name)
+    ecto_type = Keyword.fetch!(opts, :ecto_type)
 
-    quote do
-      if Code.ensure_loaded?(Phoenix.Param) do
-        defimpl Phoenix.Param, for: unquote(type_name) do
-          def to_param(%{value: value}) do
-            Phoenix.Param.to_param(value)
+    if ecto_type == :unstorable do
+      quote do
+        if Code.ensure_loaded?(Phoenix.Param) do
+          defimpl Phoenix.Param, for: unquote(type_name) do
+            def to_param(_type) do
+              raise UnstorableError.exception("Unable to reveal an unstorable data type's value.")
+            end
+          end
+        end
+      end
+    else
+      quote do
+        if Code.ensure_loaded?(Phoenix.Param) do
+          defimpl Phoenix.Param, for: unquote(type_name) do
+            def to_param(%{value: value}) do
+              Phoenix.Param.to_param(value)
+            end
           end
         end
       end
@@ -197,12 +273,25 @@ defmodule Newt do
 
   defp generate_html_safe_impl(opts) do
     type_name = Keyword.fetch!(opts, :type_name)
+    ecto_type = Keyword.fetch!(opts, :ecto_type)
 
-    quote do
-      if Code.ensure_loaded?(HtmlSafe) do
-        defimpl Phoenix.HTML.Safe, for: unquote(type_name) do
-          def to_iodata(%{value: value}) do
-            HtmlSafe.to_iodata(value)
+    if ecto_type == :unstorable do
+      quote do
+        if Code.ensure_loaded?(HtmlSafe) do
+          defimpl Phoenix.HTML.Safe, for: unquote(type_name) do
+            def to_iodata(_type) do
+              HtmlSafe.to_iodata("**REDACTED**")
+            end
+          end
+        end
+      end
+    else
+      quote do
+        if Code.ensure_loaded?(HtmlSafe) do
+          defimpl Phoenix.HTML.Safe, for: unquote(type_name) do
+            def to_iodata(%{value: value}) do
+              HtmlSafe.to_iodata(value)
+            end
           end
         end
       end
@@ -246,7 +335,13 @@ defmodule Newt do
 
           @impl true
           def dump(value) when is_struct(value, unquote(type_name)) do
-            {:ok, DomainType.unwrap(value)}
+            if unquote(ecto_type) == :unstorable do
+              raise Newt.UnstorableError.exception(
+                      "Attempt to dump an unstorable value type denied."
+                    )
+            else
+              {:ok, DomainType.unwrap(value)}
+            end
           end
 
           def dump(_value) do
