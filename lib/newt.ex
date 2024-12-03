@@ -335,13 +335,21 @@ defmodule Newt do
 
           @impl true
           def dump(value) when is_struct(value, unquote(type_name)) do
-            if unquote(ecto_type) == :unstorable do
-              raise Newt.UnstorableError.exception(
-                      "Attempt to dump an unstorable value type denied."
-                    )
-            else
-              {:ok, DomainType.unwrap(value)}
-            end
+            unquote(
+              case ecto_type do
+                :unstorable ->
+                  quote do
+                    raise Newt.UnstorableError.exception(
+                            "Attempt to dump an unstorable value type denied."
+                          )
+                  end
+
+                _ ->
+                  quote do
+                    {:ok, DomainType.unwrap(value)}
+                  end
+              end
+            )
           end
 
           def dump(_value) do
