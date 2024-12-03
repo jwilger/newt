@@ -27,3 +27,8 @@ defmodule Newt.ExampleIntegerType do
     end
   end
 end
+
+defmodule Newt.ExampleUnstorableType do
+  @moduledoc false
+  use Newt, type: any(), ecto_type: :unstorable
+end
