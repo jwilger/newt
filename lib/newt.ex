@@ -339,6 +339,7 @@ defmodule Newt do
 
                 :invalid
             end
+
             {:ok, %DomainType{value: data}}
           end
 

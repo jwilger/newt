@@ -188,6 +188,7 @@ defmodule NewtTest do
       assert ExampleStringType.Ectotype.dump("example") == :error
 
       {:ok, value} = ExampleUnstorableType.new("example")
+
       assert_raise Newt.UnstorableError, fn ->
         ExampleUnstorableType.Ectotype.dump(value)
       end
