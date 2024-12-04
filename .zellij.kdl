@@ -8,14 +8,10 @@ layout {
 
 	tab name="1 code" focus=true {
 		pane split_direction="vertical" {
-			pane name="editor" size="80%" focus=true command="hx" borderless=true
+			pane name="editor" size="80%" focus=true command="vim" borderless=true
 			pane name="tests" size="20%" command="mix" {
 				args "test.interactive" "--stale"
 			}
 		}
-	}
-
-	tab name="2 git" {
-		pane name="git" command="lazygit" borderless=true
 	}
 }
