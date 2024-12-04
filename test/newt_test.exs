@@ -174,9 +174,6 @@ defmodule NewtTest do
       {:ok, value} = ExampleIntegerType.new(42)
       assert ExampleIntegerType.Ectotype.load(42) == {:ok, value}
 
-      assert {:error, %ValidationError{message: "must be 'example'"}} =
-               ExampleStringType.Ectotype.load([1])
-
       assert ExampleUnstorableType.Ectotype.load("example") ==
                ExampleUnstorableType.new("example")
     end

@@ -225,10 +225,6 @@ defmodule Newt do
           require Logger
 
           def unwrap(value) do
-            Logger.warning(
-              "You are attempting to unwrap an unstorable (secret) value, so I am just returning the type."
-            )
-
             value
           end
         end
@@ -304,6 +300,8 @@ defmodule Newt do
     ecto_type = Keyword.fetch!(opts, :ecto_type)
 
     quote do
+      require Logger
+
       if Code.ensure_loaded?(Ecto.Type) do
         defmodule Ectotype do
           @moduledoc """
@@ -330,7 +328,18 @@ defmodule Newt do
 
           @impl true
           def load(data) do
-            DomainType.new(data)
+            case DomainType.validate(data) do
+              {:ok, data} ->
+                :ok
+
+              {:error, message} ->
+                Logger.warning(
+                  "Loaded data for #{unquote(type_name)} is invalid for the type. #{message} #{inspect(data)}"
+                )
+
+                :invalid
+            end
+            {:ok, %DomainType{value: data}}
           end
 
           @impl true
