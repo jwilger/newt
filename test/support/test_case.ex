@@ -6,7 +6,6 @@ defmodule Newt.TestCase do
   using do
     quote do
       use ExUnitProperties
-      import AssertMatch
     end
   end
 end
