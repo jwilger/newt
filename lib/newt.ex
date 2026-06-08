@@ -15,11 +15,17 @@ defmodule Newt do
     A protocol for unwrapping values from NewTypes.
     """
 
+    @fallback_to_any true
+
     @doc """
     Unwraps a value from a NewType.
     """
     @spec unwrap(any()) :: any()
     def unwrap(data)
+  end
+
+  defimpl Unwrap, for: Any do
+    def unwrap(data), do: data
   end
 
   defmodule ValidationError do
@@ -372,9 +378,6 @@ defmodule Newt do
 
   def maybe_unwrap(data) do
     Unwrap.unwrap(data)
-  rescue
-    Protocol.UndefinedError -> data
-    x -> reraise(x, __STACKTRACE__)
   end
 
   @doc """

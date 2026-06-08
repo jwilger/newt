@@ -6,20 +6,18 @@ defmodule NewtTest do
   alias Newt.ValidationError
   alias Phoenix.HTML.Safe, as: HtmlSafe
 
-  require ExampleUnvalidatedStringType
-  require ExampleStringType
   require Newt
 
   use Newt.TestCase
 
   describe "new/1" do
     test "returns the passed primitive value as the type" do
-      {:ok, value} = ExampleUnvalidatedStringType.new(Faker.Lorem.word())
+      {:ok, value} = ExampleUnvalidatedStringType.new("word")
       assert is_struct(value, ExampleUnvalidatedStringType)
     end
 
     test "returns the argument if the argument is already the type" do
-      {:ok, value} = ExampleUnvalidatedStringType.new(Faker.Lorem.word())
+      {:ok, value} = ExampleUnvalidatedStringType.new("word")
       assert {:ok, ^value} = ExampleUnvalidatedStringType.new(value)
     end
 
@@ -33,12 +31,12 @@ defmodule NewtTest do
 
   describe "new!/1" do
     test "returns the passed primitive value as the type" do
-      value = ExampleUnvalidatedStringType.new!(Faker.Lorem.word())
+      value = ExampleUnvalidatedStringType.new!("word")
       assert is_struct(value, ExampleUnvalidatedStringType)
     end
 
     test "returns the argument if the argument is already the type" do
-      value = ExampleUnvalidatedStringType.new!(Faker.Lorem.word())
+      value = ExampleUnvalidatedStringType.new!("word")
       assert ^value = ExampleUnvalidatedStringType.new!(value)
     end
 
@@ -219,19 +217,7 @@ defmodule NewtTest do
     end
 
     test "returns false if the argument is not a Newt type" do
-      check all arg <-
-                  term()
-                  |> filter(fn
-                    arg when is_struct(arg) ->
-                      try do
-                        :ok != Protocol.assert_impl!(Newt, arg)
-                      rescue
-                        ArgumentError -> true
-                      end
-
-                    _ ->
-                      true
-                  end) do
+      check all arg <- term() |> filter(&(not is_struct(&1))) do
         func = fn
           arg when Newt.type!(arg, ExampleIntegerType) -> true
           _ -> false
