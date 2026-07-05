@@ -18,17 +18,29 @@ jobs:
         with:
           elixir-version: "1.20"
           otp-version: "29"
+      - name: Compute mix.lock hash
+        id: mixlockhash
+        # gregor's runner is missing the node20 helper hashFiles() needs; compute by hand.
+        run: |
+          shopt -s globstar
+          echo "hash=$(cat **/mix.lock | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
       - name: Restore dependencies cache
         uses: actions/cache@v4
         with:
           path: deps
-          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          key: ${{ runner.os }}-mix-${{ steps.mixlockhash.outputs.hash }}
           restore-keys: ${{ runner.os }}-mix-
+      - name: Compute ex files hash
+        id: exfileshash
+        # gregor's runner is missing the node20 helper hashFiles() needs; compute by hand.
+        run: |
+          shopt -s globstar
+          echo "hash=$(cat **/*.ex | sha256sum | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
       - name: Restore _build cache
         uses: actions/cache@v4
         with:
           path: _build
-          key: ${{ runner.os }}-build-${{ hashFiles('**/*.ex') }}
+          key: ${{ runner.os }}-build-${{ steps.exfileshash.outputs.hash }}
           restore-keys: ${{ runner.os }}-build-
       - name: Install dependencies
         run: mix deps.get
