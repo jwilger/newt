@@ -10,7 +10,7 @@ permissions:
 jobs:
   publish:
     name: Publish to Hex
-    runs-on: [self-hosted, self-hosted-gregor]
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Set up Elixir
