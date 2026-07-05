@@ -40,9 +40,15 @@ jobs:
             echo "Tag version ($TAG_VERSION) does not match mix.exs version ($MIX_VERSION)"
             exit 1
           fi
+      - name: Load publish secrets
+        id: load_secrets
+        uses: 1password/load-secrets-action@v4
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          HEX_API_KEY: op://Github Secrets/HEX_API_KEY/credential
       - name: Publish to Hex
         uses: synchronal/hex-publish-action@v3
         with:
           name: newt
-          key: ${{ secrets.HEX_API_KEY }}
+          key: ${{ steps.load_secrets.outputs.HEX_API_KEY }}
           tag-release: false
