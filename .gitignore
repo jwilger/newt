@@ -29,3 +29,7 @@ newt-*.tar
 .nix-mix
 priv/static/docs
 .erlang-history
+
+# Dialyzer PLT files (cached in CI, rebuilt locally as needed).
+/priv/plts/*.plt
+/priv/plts/*.plt.hash

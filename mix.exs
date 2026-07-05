@@ -21,6 +21,13 @@ defmodule Newt.MixProject do
         output: "priv/static/docs",
         main: "readme",
         extras: ["README.md"]
+      ],
+      dialyzer: [
+        # Keep PLTs (including the core Erlang/Elixir PLT) inside the project
+        # directory instead of the default _build/ and $MIX_HOME locations so
+        # CI can cache them with a single actions/cache path (priv/plts).
+        plt_file: {:no_warn, "priv/plts/project.plt"},
+        plt_core_path: "priv/plts"
       ]
     ]
   end
